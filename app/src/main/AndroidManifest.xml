@@ -11,8 +11,10 @@
     <!-- 4. Разрешение на показ уведомлений (ОБЯЗАТЕЛЬНО для Android 13+) -->
     <!-- Без него приложение на Android 13+ упадет при старте сервиса -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Указываем, что камера нам не обязательна, можно работать на устройствах без неё -->
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
 
     <application
         android:allowBackup="true"

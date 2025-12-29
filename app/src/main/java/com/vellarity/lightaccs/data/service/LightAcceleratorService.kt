@@ -26,10 +26,10 @@ class LightAcceleratorService: Service(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
+    private var proximity: Sensor? = null
 
-    private val SHAKE_THRESHOLD = 12.0f
-    // Для логики детекции тряски (упрощенно)
-    private var lastUpdateTime: Long = 0
+    private var isClose = false
+
     private var lastX = 0f
     private var lastY = 0f
     private var lastZ = 0f
@@ -41,19 +41,32 @@ class LightAcceleratorService: Service(), SensorEventListener {
         Log.d(TAG, "Service: onCreate")
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "Service: onStartCommand")
         accelerometer?.also { sensor ->
+            val registered = sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL, 0)
+            Log.d(TAG, "Service: Listener registered: $registered")
+        }
+        proximity?.also { sensor ->
             val registered = sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
             Log.d(TAG, "Service: Listener registered: $registered")
         }
         return START_STICKY
     }
+    private fun handleAccelerometer(event: SensorEvent) {
+        val x = event.values[0]
+        val y = event.values[1]
+        val z = event.values[2]
 
-    private fun detectShake(x: Float, y: Float, z: Float) {
         val curTime = System.currentTimeMillis()
+
+        if (isClose) {
+            lastToggleTime = curTime
+            return
+        }
 
         if (curTime - lastToggleTime < COOLDOWN_MS) {
             return
@@ -67,7 +80,7 @@ class LightAcceleratorService: Service(), SensorEventListener {
         lastY = y
         lastZ = z
 
-        val HORIZONTAL_THRESHOLD = 15f
+        val HORIZONTAL_THRESHOLD = 12f
         val VERTICAL_NOISE_LIMIT = 4f
 
         val isHorizontalShake = deltaX > HORIZONTAL_THRESHOLD
@@ -82,11 +95,22 @@ class LightAcceleratorService: Service(), SensorEventListener {
         }
     }
 
+    private fun handleProximity(event: SensorEvent) {
+
+        val maxRange = event.sensor.maximumRange
+        val isNear = event.values[0] < maxRange
+
+        if (isNear != isClose) {
+            isClose = isNear
+            Log.d(TAG, "Proximity changed: In Pocket = $isClose")
+        }
+    }
 
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {
-            if (it.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                detectShake(it.values[0], it.values[1], it.values[2])
+            when (it.sensor.type) {
+                Sensor.TYPE_PROXIMITY -> handleProximity(it)
+                Sensor.TYPE_ACCELEROMETER -> handleAccelerometer(it)
             }
         }
     }

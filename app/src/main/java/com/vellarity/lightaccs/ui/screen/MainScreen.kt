@@ -38,10 +38,14 @@ fun MainScreenRoot() {
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.POST_NOTIFICATIONS
+            Manifest.permission.POST_NOTIFICATIONS,
+            Manifest.permission.VIBRATE
         )
     } else {
-        arrayOf(Manifest.permission.CAMERA)
+        arrayOf(
+            Manifest.permission.CAMERA,
+            Manifest.permission.VIBRATE
+        )
     }
 
     val launcher = rememberLauncherForActivityResult(
