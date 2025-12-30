@@ -22,9 +22,12 @@ import com.vellarity.lightaccs.ui.theme.PurpleGrey40
 import com.vellarity.lightaccs.ui.theme.SecondPurple
 
 @Composable
-fun FabSettingsButton(modifier: Modifier = Modifier) {
+fun FabSettingsButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
+) {
     FloatingActionButton(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier
             .size(70.dp)
             .shadow(10.dp),
