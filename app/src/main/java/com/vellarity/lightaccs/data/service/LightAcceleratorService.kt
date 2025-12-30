@@ -27,13 +27,15 @@ class LightAcceleratorService: Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
     private var proximity: Sensor? = null
+    private var light: Sensor? = null
 
     private var isClose = false
+    private var isDim = false
 
     private var lastX = 0f
     private var lastY = 0f
     private var lastZ = 0f
-    private val COOLDOWN_MS = 1500L
+    private val COOLDOWN_MS = 1000L
     private var lastToggleTime: Long = 0
 
     override fun onCreate() {
@@ -42,6 +44,7 @@ class LightAcceleratorService: Service(), SensorEventListener {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         proximity = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -54,6 +57,10 @@ class LightAcceleratorService: Service(), SensorEventListener {
             val registered = sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
             Log.d(TAG, "Service: Listener registered: $registered")
         }
+        light?.also { sensor ->
+            val registered = sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL)
+            Log.d(TAG, "Service: Listener registered: $registered")
+        }
         return START_STICKY
     }
     private fun handleAccelerometer(event: SensorEvent) {
@@ -63,15 +70,6 @@ class LightAcceleratorService: Service(), SensorEventListener {
 
         val curTime = System.currentTimeMillis()
 
-        if (isClose) {
-            lastToggleTime = curTime
-            return
-        }
-
-        if (curTime - lastToggleTime < COOLDOWN_MS) {
-            return
-        }
-
         val deltaX = abs(x - lastX)
         val deltaY = abs(y - lastY)
         val deltaZ = abs(z - lastZ)
@@ -80,7 +78,16 @@ class LightAcceleratorService: Service(), SensorEventListener {
         lastY = y
         lastZ = z
 
-        val HORIZONTAL_THRESHOLD = 12f
+        if (isClose && isDim) {
+            lastToggleTime = curTime
+            return
+        }
+
+        if (curTime - lastToggleTime < COOLDOWN_MS) {
+            return
+        }
+
+        val HORIZONTAL_THRESHOLD = 14f
         val VERTICAL_NOISE_LIMIT = 4f
 
         val isHorizontalShake = deltaX > HORIZONTAL_THRESHOLD
@@ -106,11 +113,19 @@ class LightAcceleratorService: Service(), SensorEventListener {
         }
     }
 
+    private fun handleLight(event: SensorEvent) {
+        val lightLevel = event.values[0]
+        if (lightLevel < 5) {
+            isDim = true
+        }
+    }
+
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {
             when (it.sensor.type) {
                 Sensor.TYPE_PROXIMITY -> handleProximity(it)
                 Sensor.TYPE_ACCELEROMETER -> handleAccelerometer(it)
+                Sensor.TYPE_LIGHT ->  handleLight(it)
             }
         }
     }
