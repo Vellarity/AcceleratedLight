@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vellarity.lightaccs.ui.theme.DarkGrey
 import com.vellarity.lightaccs.ui.theme.PrimePurple
+import com.vellarity.lightaccs.ui.theme.Purple80
 import com.vellarity.lightaccs.ui.theme.SecondPurple
 
 @Composable
@@ -30,7 +31,7 @@ fun LightButton(
     onClick: () -> Unit = {},
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    var color = if (isLightOn) PrimePurple else SecondPurple
+    var color = if (isLightOn) Purple80 else SecondPurple
 
     Box(
         modifier = modifier
