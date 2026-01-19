@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class MainScreenViewModel(private val context: Context): ViewModel() {
+class MainScreenViewModel(
+    private val context: Context
+): ViewModel() {
     private var _state: MutableStateFlow<MainScreenState> = MutableStateFlow(
         MainScreenState(
             isLight = false,
@@ -41,6 +43,7 @@ class MainScreenViewModel(private val context: Context): ViewModel() {
     fun onAction(action: MainScreenAction) {
         when (action) {
             is MainScreenAction.ToggleLight -> toggleLight()
+            is MainScreenAction.ToggleService -> {}
         }
     }
 
@@ -51,20 +54,5 @@ class MainScreenViewModel(private val context: Context): ViewModel() {
             isLight = FlashlightInteractor.isFlashOn.value
         )
     }
-
-
-//    companion object {
-//        fun provideFactory(cameraController: CameraController): ViewModelProvider.Factory {
-//            return object:ViewModelProvider.Factory {
-//                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-//                    if (modelClass.isAssignableFrom(MainScreenViewModel::class.java)) {
-//                        @Suppress("UNCHECKED_CAST")
-//                        return MainScreenViewModel(cameraController) as T
-//                    }
-//                    throw IllegalArgumentException("Unknown ViewModel class")
-//                }
-//            }
-//        }
-//    }
 
 }
