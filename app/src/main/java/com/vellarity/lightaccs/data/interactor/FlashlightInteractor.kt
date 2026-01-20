@@ -1,6 +1,7 @@
 package com.vellarity.lightaccs.data.interactor
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -21,9 +22,8 @@ object FlashlightInteractor {
     @SuppressLint("StaticFieldLeak")
     private var systemCameraManager: SystemCameraManager? = null
 
-    fun init(context: Context) {
-        appContext = context.applicationContext
-        this.systemCameraManager = SystemCameraManager(appContext)
+    fun init(application: Application) {
+        this.systemCameraManager = SystemCameraManager(application)
     }
 
     fun toggle() {

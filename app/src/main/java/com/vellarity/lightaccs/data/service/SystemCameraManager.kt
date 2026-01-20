@@ -1,5 +1,6 @@
 package com.vellarity.lightaccs.data.service
 
+import android.app.Application
 import android.content.Context
 import android.hardware.camera2.CameraManager
 
