@@ -12,6 +12,8 @@ interface SensorRepository {
     val proximityEvent: Flow<SensorEvent>
 }
 
+// Скорее-всего связывать несколько разных сервисов в один репозиторий неправильно,
+// но нормальных примеров я не нашёл, так что покуда это никому не мешает...
 class SensorRepositoryImpl(
     private val accelerometerDataSource: AccelerometerDataSource,
     private val proximityDataSource: ProximityDataSource,
