@@ -19,6 +19,7 @@ import com.vellarity.lightaccs.data.repository.SettingsRepository
 import com.vellarity.lightaccs.data.repository.SettingsRepositoryImpl
 import com.vellarity.lightaccs.data.service.SystemCameraManager
 import com.vellarity.lightaccs.data.service.SystemVibratorManager
+import com.vellarity.lightaccs.data.usecase.InvokeServiceUseCase
 
 
 class AppModule(
@@ -42,4 +43,5 @@ class AppModule(
         proximityDataSource,
         lightDataSource
     )
+    val invokeServiceUseCase: InvokeServiceUseCase = InvokeServiceUseCase(context)
 }

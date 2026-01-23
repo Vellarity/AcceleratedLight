@@ -37,18 +37,28 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vellarity.lightaccs.LightAcceleratorApp
+import com.vellarity.lightaccs.di.AppModule
 import com.vellarity.lightaccs.ui.component.FabSettingsButton
 import com.vellarity.lightaccs.ui.component.LightButton
 import com.vellarity.lightaccs.ui.theme.DarkGrey
 import com.vellarity.lightaccs.ui.theme.Purple80
+import com.vellarity.lightaccs.util.viewModelFactory
 
 @Composable
 fun MainScreenRoot() {
     val context = LocalContext.current.applicationContext
 
-    val viewModel: MainScreenViewModel = viewModel {
-        MainScreenViewModel(context)
-    }
+    val viewModel: MainScreenViewModel = viewModel(
+        factory = viewModelFactory {
+            MainScreenViewModel(
+                flashlightRepository = LightAcceleratorApp.appModule.flashlightRepository,
+                settingsRepository = LightAcceleratorApp.appModule.settingsRepository,
+                invokeServiceUseCase = LightAcceleratorApp.appModule.invokeServiceUseCase,
+                vibratorManager = LightAcceleratorApp.appModule.vibratorManager
+            )
+        }
+    )
 
     val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
@@ -205,7 +215,7 @@ private fun SettingsBottomSheet(
 fun MainScreenPreview() {
     val state = MainScreenState(
         isLight = false,
-        isShakeOn = false,
+        isServiceActive = false,
     )
 
     MainScreen(state = state, onAction = {})

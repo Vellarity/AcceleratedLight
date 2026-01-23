@@ -10,34 +10,42 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.vellarity.lightaccs.data.interactor.FlashlightInteractor
+import com.vellarity.lightaccs.data.repository.FlashlightRepository
+import com.vellarity.lightaccs.data.repository.SettingsRepository
 import com.vellarity.lightaccs.data.service.LightAcceleratorService
+import com.vellarity.lightaccs.data.service.SystemVibratorManager
+import com.vellarity.lightaccs.data.usecase.InvokeServiceUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MainScreenViewModel(
-    private val context: Context
+    private val flashlightRepository: FlashlightRepository,
+    private val settingsRepository: SettingsRepository,
+    private val vibratorManager: SystemVibratorManager,
+    private val invokeServiceUseCase: InvokeServiceUseCase
 ): ViewModel() {
     private var _state: MutableStateFlow<MainScreenState> = MutableStateFlow(
         MainScreenState(
             isLight = false,
-            isShakeOn = false,
+            isServiceActive = false,
+            accelerationThreshold = 12f
         )
     )
     val state = _state.asStateFlow()
 
     init {
-        FlashlightInteractor.init(context)
-
-        val serviceIntent = Intent(context, LightAcceleratorService::class.java)
-        context.startForegroundService(serviceIntent)
-
         viewModelScope.launch {
-            FlashlightInteractor.isFlashOn.collect { isLight ->
-                _state.value = _state.value.copy(isLight = isLight)
+            settingsRepository.isServiceActive.collect {
+                _state.value.copy(isServiceActive = it)
+            }
+
+            settingsRepository.accelerateThreshold.collect {
+                _state.value.copy(accelerationThreshold = it)
             }
         }
+        _state.value.copy(isLight = flashlightRepository.isFlash.value)
     }
 
     fun onAction(action: MainScreenAction) {
@@ -48,11 +56,10 @@ class MainScreenViewModel(
     }
 
     private fun toggleLight() {
-        FlashlightInteractor.toggle()
-
+        flashlightRepository.toggleFlash(!flashlightRepository.isFlash.value)
+        vibratorManager.vibrate(400, 150)
         _state.value = _state.value.copy(
-            isLight = FlashlightInteractor.isFlashOn.value
+            isLight = flashlightRepository.isFlash.value
         )
     }
-
 }

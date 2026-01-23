@@ -20,6 +20,11 @@ import kotlin.math.abs
 
 class LightAccelerometerService: Service() {
 
+    enum class Actions {
+        START,
+        STOP
+    }
+
     private lateinit var sensorRepository: SensorRepository
     private lateinit var flashlightRepository: FlashlightRepository
     private lateinit var settingsRepository: SettingsRepository

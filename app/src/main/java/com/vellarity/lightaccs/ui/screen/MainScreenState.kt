@@ -2,6 +2,6 @@ package com.vellarity.lightaccs.ui.screen
 
 data class MainScreenState(
     val isLight: Boolean,
-    val isShakeOn: Boolean,
-    val shakeStrength: Float = 0.0f,
+    val isServiceActive: Boolean,
+    val accelerationThreshold: Float = 12.0f,
 )
