@@ -9,6 +9,7 @@ import com.vellarity.lightaccs.data.usecase.InvokeServiceUseCase
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class MainScreenViewModel(
     private val flashlightRepository: FlashlightRepository,
@@ -37,6 +38,7 @@ class MainScreenViewModel(
         when (action) {
             is MainScreenAction.ToggleLight -> toggleLight()
             is MainScreenAction.ToggleService -> toggleService(action.isActive)
+            is MainScreenAction.ChangeAccelerationThreshold -> changeAccelerationThreshold(action.value)
         }
     }
 
@@ -50,5 +52,11 @@ class MainScreenViewModel(
             invokeServiceUseCase(InvokeServiceUseCase.ServiceAction.START)
         else
             invokeServiceUseCase(InvokeServiceUseCase.ServiceAction.STOP)
+    }
+
+    private fun changeAccelerationThreshold(value: Float) {
+        viewModelScope.launch {
+            settingsRepository.setAccelerateThreshold(value)
+        }
     }
 }

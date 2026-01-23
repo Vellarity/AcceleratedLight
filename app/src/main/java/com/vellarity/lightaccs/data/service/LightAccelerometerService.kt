@@ -1,10 +1,21 @@
 package com.vellarity.lightaccs.data.service
 
+import android.app.ForegroundServiceStartNotAllowedException
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.hardware.SensorEvent
+import android.os.Build
 import android.os.IBinder
+import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import com.vellarity.lightaccs.LightAcceleratorApp
+import com.vellarity.lightaccs.MainActivity
+import com.vellarity.lightaccs.R
 import com.vellarity.lightaccs.data.repository.FlashlightRepository
 import com.vellarity.lightaccs.data.repository.SensorRepository
 import com.vellarity.lightaccs.data.repository.SettingsRepository
@@ -20,6 +31,8 @@ import kotlin.math.abs
 
 class LightAccelerometerService: Service() {
 
+    val TAG = "SERVICE"
+
     enum class Actions {
         START,
         STOP
@@ -32,6 +45,8 @@ class LightAccelerometerService: Service() {
 
     override fun onCreate() {
         super.onCreate()
+
+        createNotificationChannel()
 
         // Не уверен, что ServiceObserver это хорошее решение, но лучшего я не нашёл
         sensorRepository = LightAcceleratorApp.appModule.sensorRepository
@@ -53,9 +68,68 @@ class LightAccelerometerService: Service() {
     private val COOLDOWN_MS = 1000L
     private var lastToggleTime: Long = 0
 
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "light_accelerometer_channel"
+            val channelName = "light_accelerometer_channel"
+
+            // ВАЖНО: Используйте IMPORTANCE_LOW или выше!
+            val importance = NotificationManager.IMPORTANCE_LOW
+
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = "Сервис датчиков для работы фонарика"
+                setSound(null, null)
+            }
+
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun startForeground() {
+        try {
+            val notificationIntent = Intent(this, MainActivity::class.java)
+            notificationIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                notificationIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+            val notification = NotificationCompat.Builder(this, "light_accelerometer_channel")
+                .setContentTitle("Трясучий фонарик")
+                .setContentText("Слушает акселерометр")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentIntent(pendingIntent)
+                .build()
+            ServiceCompat.startForeground(
+                this,
+                100,
+                notification,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+                } else {
+                    0
+                },
+            )
+        } catch (e: Exception) {
+            if (e is ForegroundServiceStartNotAllowedException) {
+                TODO("Добавить обработки ошибок по проекту")
+            }
+
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForeground()
         startProcessing()
         return START_STICKY
+    }
+
+    private fun stopForeground() {
+        stopSelf()
     }
 
     override fun onDestroy() {
@@ -79,6 +153,7 @@ class LightAccelerometerService: Service() {
                 accelerometerFlow,
                 accelerateThreshold
             ) { lightEvent, proximityEvent, accelerometerEvent, accelerateThreshold ->
+//                Log.d(TAG, "accelerateThreshold: $accelerateThreshold")
                 handleProximity(proximityEvent)
                 handleLight(lightEvent)
                 handleAccelerometer(accelerometerEvent, accelerateThreshold)

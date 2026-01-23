@@ -3,6 +3,7 @@ package com.vellarity.lightaccs.ui.screen
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -64,10 +65,14 @@ fun MainScreenRoot() {
         arrayOf(
             Manifest.permission.CAMERA,
             Manifest.permission.POST_NOTIFICATIONS,
-            Manifest.permission.VIBRATE
+            Manifest.permission.VIBRATE,
+            Manifest.permission.FOREGROUND_SERVICE_CAMERA,
+            Manifest.permission.FOREGROUND_SERVICE,
         )
     } else {
         arrayOf(
+            Manifest.permission.FOREGROUND_SERVICE,
+            Manifest.permission.FOREGROUND_SERVICE_CAMERA,
             Manifest.permission.CAMERA,
             Manifest.permission.VIBRATE
         )
@@ -78,7 +83,7 @@ fun MainScreenRoot() {
     ) { permissionsMap ->
         val allGranted = permissionsMap.values.all { it }
         if (!allGranted) {
-
+            Log.d("MAIN", "Не все разрешения получены")
         }
     }
 
@@ -122,7 +127,7 @@ fun MainScreen(
         if (showBottomSheet) {
             SettingsBottomSheet(
                 sheetState = sheetState,
-                onAction = {},
+                onAction = onAction,
                 isServiceActive = state.isServiceActive,
                 accelerationThreshold = state.accelerationThreshold,
                 onDismissRequest = {showBottomSheet = false}
@@ -153,7 +158,7 @@ private fun SettingsBottomSheet(
     sheetState: SheetState,
     isServiceActive: Boolean,
     accelerationThreshold: Float,
-    onAction: () -> Unit,
+    onAction: (MainScreenAction) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val context = LocalContext.current
@@ -181,7 +186,10 @@ private fun SettingsBottomSheet(
                     Text("Фоновая работа сервиса: ")
                     Switch(
                         checked = isServiceWork,
-                        onCheckedChange = {isServiceWork = it},
+                        onCheckedChange = {
+                            isServiceWork = it
+                            onAction(MainScreenAction.ToggleService(it))
+                                          },
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = Purple80
                         )
@@ -192,7 +200,10 @@ private fun SettingsBottomSheet(
                     Slider(
                         value = sliderPosition,
                         valueRange = 4f..20f,
-                        onValueChange = { sliderPosition = it },
+                        onValueChange = {
+                            sliderPosition = it
+                            onAction(MainScreenAction.ChangeAccelerationThreshold(it))
+                                        },
                         steps = 15,
                         colors = SliderDefaults.colors(
                             activeTrackColor = Purple80,
@@ -208,6 +219,7 @@ private fun SettingsBottomSheet(
                         Text("Проще")
                         Text("Сложнее")
                     }
+                    Text(sliderPosition.toString())
                 }
             }
 

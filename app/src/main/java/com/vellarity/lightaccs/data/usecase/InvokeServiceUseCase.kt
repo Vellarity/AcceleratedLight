@@ -19,10 +19,12 @@ class InvokeServiceUseCase(
         STOP
     }
 
+    private val intent = Intent(appContext, LightAccelerometerService::class.java)
+
     // Потом переделаю, а пока посмотрю, как это работает.
     // Перегрузка операторов - отвратительное свойство языка
     operator fun invoke(action: ServiceAction) {
-        val intent = Intent(appContext, LightAccelerometerService::class.java).apply {
+        val intent = intent.apply {
             // Map the enum to the String action expected by the Service
             this.action = when (action) {
                 ServiceAction.START -> LightAccelerometerService.Actions.START.name

@@ -4,6 +4,7 @@
 
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- 2. Разрешение на вспышку (опционально, но рекомендуется для совместимости) -->
@@ -38,7 +39,7 @@
             </intent-filter>
         </activity>
         <service
-            android:name=".data.service.LightAcceleratorService"
+            android:name=".data.service.LightAccelerometerService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="camera">
