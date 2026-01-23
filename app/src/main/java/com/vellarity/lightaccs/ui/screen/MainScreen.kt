@@ -123,6 +123,8 @@ fun MainScreen(
             SettingsBottomSheet(
                 sheetState = sheetState,
                 onAction = {},
+                isServiceActive = state.isServiceActive,
+                accelerationThreshold = state.accelerationThreshold,
                 onDismissRequest = {showBottomSheet = false}
             )
         }
@@ -149,14 +151,16 @@ fun MainScreen(
 @Composable
 private fun SettingsBottomSheet(
     sheetState: SheetState,
+    isServiceActive: Boolean,
+    accelerationThreshold: Float,
     onAction: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var sliderPosition by remember { mutableFloatStateOf(12f) }
-    var isServiceWork by remember { mutableStateOf(true) }
+    var sliderPosition by remember { mutableFloatStateOf(accelerationThreshold) }
+    var isServiceWork by remember { mutableStateOf(isServiceActive) }
 
     ModalBottomSheet(
         containerColor = DarkGrey,

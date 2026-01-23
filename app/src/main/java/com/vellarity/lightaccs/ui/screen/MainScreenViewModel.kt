@@ -36,12 +36,19 @@ class MainScreenViewModel(
     fun onAction(action: MainScreenAction) {
         when (action) {
             is MainScreenAction.ToggleLight -> toggleLight()
-            is MainScreenAction.ToggleService -> {}
+            is MainScreenAction.ToggleService -> toggleService(action.isActive)
         }
     }
 
     private fun toggleLight() {
         flashlightRepository.toggleFlash(!flashlightRepository.isFlash.value)
         vibratorManager.vibrate(400, 150)
+    }
+
+    private fun toggleService(isActive: Boolean) {
+        if (isActive)
+            invokeServiceUseCase(InvokeServiceUseCase.ServiceAction.START)
+        else
+            invokeServiceUseCase(InvokeServiceUseCase.ServiceAction.STOP)
     }
 }

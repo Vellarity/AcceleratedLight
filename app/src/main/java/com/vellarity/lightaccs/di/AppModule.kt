@@ -43,5 +43,5 @@ class AppModule(
         proximityDataSource,
         lightDataSource
     )
-    val invokeServiceUseCase: InvokeServiceUseCase = InvokeServiceUseCase(context)
+    val invokeServiceUseCase: InvokeServiceUseCase = InvokeServiceUseCase(context, settingsRepository)
 }
